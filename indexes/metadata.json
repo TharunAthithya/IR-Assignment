@@ -1,0 +1,38 @@
+{
+  "dataset_name": "Hindu Tamil News Articles Dataset",
+  "dataset_source": "https://huggingface.co/datasets/Shwetasss/HinduTamil-News-Articles-Dataset",
+  "local_dataset_file": "data/0000.parquet",
+  "indexing_timestamp": "2026-10-28T13:37:46.139851",
+  "total_original_records": 10334,
+  "total_indexed_documents": 10334,
+  "total_unique_terms": 168277,
+  "total_indexed_tokens": 2659417,
+  "average_tokens_per_document": 257.35,
+  "index_construction_duration_seconds": 5.433,
+  "preprocessing_settings": {
+    "normalization": "Unicode NFC",
+    "case_folding": "Lowercase for English, preserved for Tamil",
+    "token_pattern": "[\\p{L}\\p{N}][\\p{L}\\p{M}\\p{N}]*",
+    "stopwords_removed": false,
+    "stemming_applied": false,
+    "combining_marks_preserved": true
+  },
+  "file_sizes": {
+    "inverted_index.json": {
+      "bytes": 17325727,
+      "mb": 16.52
+    },
+    "positional_index.json": {
+      "bytes": 36754604,
+      "mb": 35.05
+    },
+    "dictionary.json": {
+      "bytes": 9676206,
+      "mb": 9.23
+    },
+    "documents.json": {
+      "bytes": 66413451,
+      "mb": 63.34
+    }
+  }
+}

@@ -1,0 +1,18 @@
+# Virtual Environment
+.venv/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE Configuration
+.vscode/
+.idea/
+
+# Raw News Dataset (Excluded to comply with article copyright and redistribution restrictions)
+# Download from: https://huggingface.co/datasets/Shwetasss/HinduTamil-News-Articles-Dataset
+data/*.parquet
+
+# Scratch and Temporary files
+scratch/

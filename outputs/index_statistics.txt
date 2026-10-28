@@ -1,0 +1,29 @@
+==================================================================
+      TAMIL INFORMATION RETRIEVAL SYSTEM — INDEX STATISTICS       
+==================================================================
+Dataset Name:          Hindu Tamil News Articles Dataset
+Dataset Source:        https://huggingface.co/datasets/Shwetasss/HinduTamil-News-Articles-Dataset
+Local Parquet Path:    data/0000.parquet
+Indexing Timestamp:    2026-10-28T13:37:46.139851
+------------------------------------------------------------------
+Total Original Docs:   10,334
+Total Indexed Docs:    10,334
+Vocabulary Size:       168,277 unique terms
+Total Indexed Tokens:  2,659,417 tokens
+Average Tokens/Doc:    257.35
+Build Duration:        5.433 seconds
+------------------------------------------------------------------
+Generated Index Files on Disk:
+  - inverted_index.json     :  16.52 MB (17,325,727 bytes)
+  - positional_index.json   :  35.05 MB (36,754,604 bytes)
+  - dictionary.json         :   9.23 MB (9,676,206 bytes)
+  - documents.json          :  63.34 MB (66,413,451 bytes)
+------------------------------------------------------------------
+Preprocessing Configuration:
+  - normalization               : Unicode NFC
+  - case_folding                : Lowercase for English, preserved for Tamil
+  - token_pattern               : [\p{L}\p{N}][\p{L}\p{M}\p{N}]*
+  - stopwords_removed           : False
+  - stemming_applied            : False
+  - combining_marks_preserved   : True
+==================================================================

@@ -1,0 +1,86 @@
+==================================================================
+      INDEX POSTINGS & POSITIONAL POSTINGS DETAILED EXAMPLES     
+==================================================================
+
+------------------------------------------------------------------
+TERM: 'தமிழ்நாடு'
+------------------------------------------------------------------
+Document Frequency (df):    1,629 documents
+Collection Frequency (cf):  3,100 total occurrences
+
+Regular Inverted Index Postings List (1,629 document IDs):
+  First 30 Document IDs: [2, 6, 10, 12, 13, 16, 18, 20, 28, 57, 63, 66, 67, 76, 82, 84, 85, 97, 101, 104, 111, 116, 124, 134, 137, 141, 150, 152, 153, 154]
+  ... (1599 more documents omitted)
+
+Positional Inverted Index Postings Sample (First 5 documents):
+  Doc ID 2 (Occurrences=6):
+    Positions: [0, 9, 29, 80, 98, 115]
+    Title:     தமிழ்நாடு காங்கிரஸ் கமிட்டியில் புதிய நிர்வாகிகள் நியமனம்: செல்வப்பெருந்தகை அறிவிப்பு
+  Doc ID 6 (Occurrences=1):
+    Positions: [61]
+    Title:     உதகை அருகே எருமை மீது மோதி தடம் புரண்ட மலை ரயில் - பயணிகளுக்கு பாதிப்பு இல்லை
+  Doc ID 10 (Occurrences=1):
+    Positions: [151]
+    Title:     காஞ்சி, திருவள்ளூர் பிரதிநிதிகளிடம் திமுக தேர்தல் அறிக்கை தயாரிப்புக் குழு கருத்துக் கேட்பு
+  Doc ID 12 (Occurrences=2):
+    Positions: [18, 79]
+    Title:     பொருளாதார நிபுணர் ஆனந்த் சீனிவாசனுக்கு தமிழக காங்கிரஸில் பொறுப்பு
+  Doc ID 13 (Occurrences=3):
+    Positions: [39, 46, 270]
+    Title:     “ஜி.கே.வாசனை மூப்பனாரின் ஆன்மா மன்னிக்காது” - செல்வப்பெருந்தகை சாடல்
+
+------------------------------------------------------------------
+TERM: 'சென்னை'
+------------------------------------------------------------------
+Document Frequency (df):    6,530 documents
+Collection Frequency (cf):  15,696 total occurrences
+
+Regular Inverted Index Postings List (6,530 document IDs):
+  First 30 Document IDs: [0, 1, 2, 7, 8, 10, 12, 13, 14, 17, 18, 19, 20, 22, 24, 26, 31, 32, 33, 34, 36, 37, 39, 40, 41, 42, 43, 44, 45, 46]
+  ... (6500 more documents omitted)
+
+Positional Inverted Index Postings Sample (First 5 documents):
+  Doc ID 0 (Occurrences=1):
+    Positions: [10]
+    Title:     தமிழகத்தில் விபத்தில்லாமல் பணிபுரிந்த அரசுப் பேருந்து ஓட்டுநர்களுக்கு தங்க, வெள்ளி நாணயங்கள் வழங்கல்
+  Doc ID 1 (Occurrences=3):
+    Positions: [15, 36, 42]
+    Title:     ரூ.1.10 கோடி மான நஷ்டஈடு கோரி ஏ.வி.ராஜுவுக்கு எதிராக அதிமுக வழக்கு @ உயர் நீதிமன்றம்
+  Doc ID 2 (Occurrences=1):
+    Positions: [8]
+    Title:     தமிழ்நாடு காங்கிரஸ் கமிட்டியில் புதிய நிர்வாகிகள் நியமனம்: செல்வப்பெருந்தகை அறிவிப்பு
+  Doc ID 7 (Occurrences=3):
+    Positions: [11, 30, 34]
+    Title:     அவதூறு வழக்கை நிராகரிக்கக் கோரி உதயநிதி மனு: இபிஎஸ் பதிலளிக்க உயர் நீதிமன்றம் உத்தரவு
+  Doc ID 8 (Occurrences=1):
+    Positions: [8]
+    Title:     பழனிசாமியை சந்தித்தது ஏன்? - தமாகா இளைஞரணித் தலைவர் யுவராஜா விளக்கம்
+
+------------------------------------------------------------------
+TERM: 'அரசு'
+------------------------------------------------------------------
+Document Frequency (df):    5,019 documents
+Collection Frequency (cf):  14,887 total occurrences
+
+Regular Inverted Index Postings List (5,019 document IDs):
+  First 30 Document IDs: [0, 4, 9, 11, 13, 14, 16, 17, 19, 20, 23, 26, 28, 29, 33, 35, 42, 45, 46, 47, 50, 51, 52, 56, 60, 61, 65, 66, 67, 68]
+  ... (4989 more documents omitted)
+
+Positional Inverted Index Postings Sample (First 5 documents):
+  Doc ID 0 (Occurrences=4):
+    Positions: [15, 54, 105, 167]
+    Title:     தமிழகத்தில் விபத்தில்லாமல் பணிபுரிந்த அரசுப் பேருந்து ஓட்டுநர்களுக்கு தங்க, வெள்ளி நாணயங்கள் வழங்கல்
+  Doc ID 4 (Occurrences=1):
+    Positions: [47]
+    Title:     பரந்தூர் விமான நிலைய எதிர்ப்பு போராட்டம்: 150+ விவசாயிகள் கைது - போலீஸ் நடவடிக்கையால் பரபரப்பு
+  Doc ID 9 (Occurrences=7):
+    Positions: [105, 129, 144, 190, 228, 245, 250]
+    Title:     பாலாற்றில் தடுப்பணை கட்ட ரூ.215 கோடி: அடிக்கல் நாட்டிய ஆந்திர முதல்வர் ஜெகன் அறிவிப்பு
+  Doc ID 11 (Occurrences=3):
+    Positions: [102, 171, 267]
+    Title:     “தமிழிசை, நிர்மலா சீதாராமனை புதுச்சேரி வாக்காளர்கள் ஏற்க மாட்டார்கள்” - நாராயணசாமி கருத்து
+  Doc ID 13 (Occurrences=2):
+    Positions: [150, 209]
+    Title:     “ஜி.கே.வாசனை மூப்பனாரின் ஆன்மா மன்னிக்காது” - செல்வப்பெருந்தகை சாடல்
+
+==================================================================
