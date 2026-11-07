@@ -1,22 +1,26 @@
-# Virtual Environment
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Environments
 .venv/
 venv/
 ENV/
+env/
 
-# Python Cache & Bytecode
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.pytest_cache/
-
-# IDE Configuration
+# IDE / Editor configuration
 .vscode/
 .idea/
-*.sublime-project
-*.sublime-workspace
+*.swp
+*.swo
 
-# Large Raw Datasets (Do not push to Git due to file size limits)
+# Test & coverage
+.pytest_cache/
+.coverage
+
+# Large dataset dumps & raw archives
 data/wikipedia/
 data/extracted/raw/
 *.xml
@@ -24,8 +28,7 @@ data/extracted/raw/
 *.parquet
 *.tar.gz
 
-# Scratch, Temporary & Plan files
-scratch/
+# Local temporary files
 tmp/
 *.tmp
-implementation_plan.md
+*.log
