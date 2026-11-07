@@ -1,4 +1,4 @@
-"""Unit tests for Index Construction and Serialization."""
+"""Unit tests for Disk-Based Positional Index Construction."""
 
 import json
 import os
@@ -6,117 +6,151 @@ import shutil
 import tempfile
 import unittest
 
-from build_index import build_indexes, save_indexes
+from build_index import build_and_save
+from preprocess import tokenize
 
 
-class TestIndexConstruction(unittest.TestCase):
-    """Test suite verifying regular and positional inverted index construction."""
+class TestDiskBasedIndexConstruction(unittest.TestCase):
+    """Tests verifying vocabulary.json + postings.dat architecture."""
 
-    def setUp(self):
-        """Create deterministic synthetic documents for unit testing."""
-        self.synthetic_records = [
+    @classmethod
+    def setUpClass(cls):
+        """Create a small synthetic articles.jsonl for testing."""
+        cls.temp_dir = tempfile.mkdtemp()
+        cls.articles_dir = os.path.join(cls.temp_dir, "extracted")
+        cls.index_dir = os.path.join(cls.temp_dir, "indexes")
+        os.makedirs(cls.articles_dir, exist_ok=True)
+
+        # Write synthetic articles
+        articles = [
             {
-                "Title": "தமிழ்நாடு செய்திகள்",
-                "Text": "சென்னை மற்றும் மதுரை தமிழகத்தின் முக்கிய நகரங்கள் ஆகும்.",
-                "Author": "செய்தியாளர்",
-                "City": "சென்னை",
-                "Published": "2024-01-01",
+                "id": 0,
+                "title": "தமிழ்நாடு செய்திகள்",
+                "text": "சென்னை மற்றும் மதுரை தமிழகத்தின் முக்கிய நகரங்கள் ஆகும்.",
             },
             {
-                "Title": "சென்னை வானிலை",
-                "Text": "சென்னை மாநகரில் கனமழை பெய்துள்ளது. சென்னை மக்கள் மகிழ்ச்சி அடைந்தனர்.",
-                "Author": "வானிலை பிரிவு",
-                "City": "சென்னை",
-                "Published": "2024-01-02",
+                "id": 1,
+                "title": "சென்னை வானிலை",
+                "text": "சென்னை மாநகரில் கனமழை பெய்துள்ளது. சென்னை மக்கள் மகிழ்ச்சி அடைந்தனர்.",
             },
             {
-                "Title": "மதுரை திருவிழா",
-                "Text": "மதுரை மீனாட்சி அம்மன் கோவில் திருவிழா தொடங்கியது.",
-                "Author": "செய்தியாளர்",
-                "City": "மதுரை",
-                "Published": "2024-01-03",
+                "id": 2,
+                "title": "மதுரை திருவிழா",
+                "text": "மதுரை மீனாட்சி அம்மன் கோவில் திருவிழா தொடங்கியது.",
             },
         ]
-        self.temp_dir = tempfile.mkdtemp()
+        cls.articles_path = os.path.join(cls.articles_dir, "articles.jsonl")
+        with open(cls.articles_path, "w", encoding="utf-8") as f:
+            for article in articles:
+                f.write(json.dumps(article, ensure_ascii=False) + "\n")
 
-    def tearDown(self):
-        """Clean up temporary directory."""
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
+        # Build index
+        cls.stats = build_and_save(
+            articles_path=cls.articles_path,
+            output_dir=cls.index_dir,
+        )
 
-    def test_positional_index_structure_and_repeated_terms(self):
-        """Verify positional index maps terms to doc IDs and sorted zero-based positions."""
-        pos_idx, inv_idx, dictionary, docs, stats = build_indexes(self.synthetic_records)
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.exists(cls.temp_dir):
+            shutil.rmtree(cls.temp_dir)
 
-        # In Doc 1: "சென்னை வானிலை சென்னை மாநகரில் கனமழை பெய்துள்ளது. சென்னை மக்கள் மகிழ்ச்சி அடைந்தனர்."
-        # Tokens:
-        # 0: சென்னை
-        # 1: வானிலை
-        # 2: சென்னை
-        # 3: மாநகரில்
-        # 4: கனமழை
-        # 5: பெய்துள்ளது
-        # 6: சென்னை
-        # 7: மக்கள்
-        # 8: மகிழ்ச்சி
-        # 9: அடைந்தனர்
-        self.assertIn("சென்னை", pos_idx)
-        self.assertIn("1", pos_idx["சென்னை"])
-        expected_positions_doc1 = [0, 2, 6]
-        self.assertEqual(pos_idx["சென்னை"]["1"], expected_positions_doc1)
+    def test_output_files_exist(self):
+        """Verify all required index files are created."""
+        for fname in ["vocabulary.json", "postings.dat", "doc_meta.json", "metadata.json"]:
+            fpath = os.path.join(self.index_dir, fname)
+            self.assertTrue(os.path.exists(fpath), f"Missing: {fname}")
 
-        # In Doc 0: "தமிழ்நாடு செய்திகள் சென்னை மற்றும் மதுரை தமிழகத்தின் முக்கிய நகரங்கள் ஆகும்"
-        # 0: தமிழ்நாடு, 1: செய்திகள், 2: சென்னை
-        self.assertIn("0", pos_idx["சென்னை"])
-        self.assertEqual(pos_idx["சென்னை"]["0"], [2])
+    def test_vocabulary_structure(self):
+        """Verify vocabulary entries contain df, cf, offset, length."""
+        with open(os.path.join(self.index_dir, "vocabulary.json"), "r", encoding="utf-8") as f:
+            vocab = json.load(f)
 
-    def test_regular_inverted_index_derivation(self):
-        """Verify regular inverted index contains sorted, unique document IDs."""
-        pos_idx, inv_idx, dictionary, docs, stats = build_indexes(self.synthetic_records)
+        self.assertIn("சென்னை", vocab)
+        entry = vocab["சென்னை"]
+        self.assertIn("df", entry)
+        self.assertIn("cf", entry)
+        self.assertIn("offset", entry)
+        self.assertIn("length", entry)
+        self.assertIsInstance(entry["offset"], int)
+        self.assertIsInstance(entry["length"], int)
+        self.assertGreater(entry["length"], 0)
 
-        # "சென்னை" appears in Doc 0 and Doc 1
-        self.assertIn("சென்னை", inv_idx)
-        self.assertEqual(inv_idx["சென்னை"], [0, 1])
+    def test_vocabulary_df_cf_accuracy(self):
+        """Verify df and cf are computed correctly."""
+        with open(os.path.join(self.index_dir, "vocabulary.json"), "r", encoding="utf-8") as f:
+            vocab = json.load(f)
 
-        # "மதுரை" appears in Doc 0 and Doc 2
-        self.assertIn("மதுரை", inv_idx)
-        self.assertEqual(inv_idx["மதுரை"], [0, 2])
+        # சென்னை: Doc 0 (pos 2), Doc 1 (pos 0, 2, 6) → df=2, cf=4
+        self.assertEqual(vocab["சென்னை"]["df"], 2)
+        self.assertEqual(vocab["சென்னை"]["cf"], 4)
 
-        # "வானிலை" appears only in Doc 1
-        self.assertIn("வானிலை", inv_idx)
-        self.assertEqual(inv_idx["வானிலை"], [1])
+        # மதுரை: Doc 0 (pos 4), Doc 2 (pos 0, 2) → df=2, cf=3
+        self.assertEqual(vocab["மதுரை"]["df"], 2)
+        self.assertEqual(vocab["மதுரை"]["cf"], 3)
 
-    def test_dictionary_df_and_cf(self):
-        """Verify document frequency (df) and collection frequency (cf)."""
-        pos_idx, inv_idx, dictionary, docs, stats = build_indexes(self.synthetic_records)
+    def test_postings_retrieval_by_offset(self):
+        """Verify postings can be retrieved using byte offset and length."""
+        with open(os.path.join(self.index_dir, "vocabulary.json"), "r", encoding="utf-8") as f:
+            vocab = json.load(f)
 
-        # "சென்னை": appears in 2 docs (df=2), total occurrences = 1 (in doc 0) + 3 (in doc 1) = 4 (cf=4)
-        self.assertIn("சென்னை", dictionary)
-        self.assertEqual(dictionary["சென்னை"]["df"], 2)
-        self.assertEqual(dictionary["சென்னை"]["cf"], 4)
+        entry = vocab["சென்னை"]
+        offset = entry["offset"]
+        length = entry["length"]
 
-        # "மதுரை": appears in 2 docs (df=2), 1 in doc 0 + 2 in doc 2 (Title and Text) = 3 (cf=3)
-        self.assertEqual(dictionary["மதுரை"]["df"], 2)
-        self.assertEqual(dictionary["மதுரை"]["cf"], 3)
+        with open(os.path.join(self.index_dir, "postings.dat"), "rb") as f:
+            f.seek(offset)
+            raw = f.read(length)
 
-    def test_index_serialization_and_deserialization(self):
-        """Verify saving to JSON and reloading preserves identical data and UTF-8 encoding."""
-        pos_idx, inv_idx, dictionary, docs, stats = build_indexes(self.synthetic_records)
-        saved_paths = save_indexes(self.temp_dir, pos_idx, inv_idx, dictionary, docs, stats)
+        postings = json.loads(raw.decode("utf-8"))
 
-        # Verify files exist
-        for fname in ["inverted_index.json", "positional_index.json", "dictionary.json", "documents.json", "metadata.json"]:
-            self.assertTrue(os.path.exists(os.path.join(self.temp_dir, fname)))
+        # Verify postings structure
+        self.assertIn("0", postings)  # Doc 0
+        self.assertIn("1", postings)  # Doc 1
+        self.assertEqual(postings["0"], [2])  # Position 2 in Doc 0
+        self.assertEqual(postings["1"], [0, 2, 6])  # Positions in Doc 1
 
-        # Reload inverted index
-        with open(saved_paths["inverted_index.json"], "r", encoding="utf-8") as f:
-            reloaded_inv = json.load(f)
-        self.assertEqual(reloaded_inv, inv_idx)
+    def test_postings_offsets_are_byte_accurate(self):
+        """Verify multiple terms' offsets don't overlap and are byte-accurate."""
+        with open(os.path.join(self.index_dir, "vocabulary.json"), "r", encoding="utf-8") as f:
+            vocab = json.load(f)
 
-        # Reload positional index
-        with open(saved_paths["positional_index.json"], "r", encoding="utf-8") as f:
-            reloaded_pos = json.load(f)
-        self.assertEqual(reloaded_pos, pos_idx)
+        postings_path = os.path.join(self.index_dir, "postings.dat")
+        postings_size = os.path.getsize(postings_path)
+
+        for term, entry in vocab.items():
+            offset = entry["offset"]
+            length = entry["length"]
+            # Offset + length must not exceed file size
+            self.assertLessEqual(
+                offset + length, postings_size,
+                f"Term '{term}' offset+length ({offset}+{length}) exceeds file size ({postings_size})"
+            )
+            # Verify each term's postings can be decoded
+            with open(postings_path, "rb") as f:
+                f.seek(offset)
+                raw = f.read(length)
+            postings = json.loads(raw.decode("utf-8"))
+            self.assertIsInstance(postings, dict)
+
+    def test_doc_meta_structure(self):
+        """Verify document metadata maps doc_id to title."""
+        with open(os.path.join(self.index_dir, "doc_meta.json"), "r", encoding="utf-8") as f:
+            doc_meta = json.load(f)
+
+        self.assertEqual(len(doc_meta), 3)
+        self.assertEqual(doc_meta["0"], "தமிழ்நாடு செய்திகள்")
+        self.assertEqual(doc_meta["1"], "சென்னை வானிலை")
+        self.assertEqual(doc_meta["2"], "மதுரை திருவிழா")
+
+    def test_metadata_statistics(self):
+        """Verify metadata contains accurate build statistics."""
+        with open(os.path.join(self.index_dir, "metadata.json"), "r", encoding="utf-8") as f:
+            meta = json.load(f)
+
+        self.assertEqual(meta["total_documents"], 3)
+        self.assertGreater(meta["vocabulary_size"], 0)
+        self.assertGreater(meta["total_tokens"], 0)
 
 
 if __name__ == "__main__":

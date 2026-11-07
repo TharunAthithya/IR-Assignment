@@ -1,29 +1,60 @@
-==================================================================
-      TAMIL INFORMATION RETRIEVAL SYSTEM — INDEX STATISTICS       
-==================================================================
-Dataset Name:          Hindu Tamil News Articles Dataset
-Dataset Source:        https://huggingface.co/datasets/Shwetasss/HinduTamil-News-Articles-Dataset
-Local Parquet Path:    data/0000.parquet
-Indexing Timestamp:    2026-10-28T13:37:46.139851
-------------------------------------------------------------------
-Total Original Docs:   10,334
-Total Indexed Docs:    10,334
-Vocabulary Size:       168,277 unique terms
-Total Indexed Tokens:  2,659,417 tokens
-Average Tokens/Doc:    257.35
-Build Duration:        5.433 seconds
-------------------------------------------------------------------
-Generated Index Files on Disk:
-  - inverted_index.json     :  16.52 MB (17,325,727 bytes)
-  - positional_index.json   :  35.05 MB (36,754,604 bytes)
-  - dictionary.json         :   9.23 MB (9,676,206 bytes)
-  - documents.json          :  63.34 MB (66,413,451 bytes)
-------------------------------------------------------------------
-Preprocessing Configuration:
-  - normalization               : Unicode NFC
-  - case_folding                : Lowercase for English, preserved for Tamil
-  - token_pattern               : [\p{L}\p{N}][\p{L}\p{M}\p{N}]*
-  - stopwords_removed           : False
-  - stemming_applied            : False
-  - combining_marks_preserved   : True
-==================================================================
+======================================================================
+              INDEX STATISTICS REPORT
+======================================================================
+
+Dataset:                     Tamil Wikipedia
+Source:                      https://dumps.wikimedia.org/tawiki/
+Indexing Timestamp:          2026-11-07T02:28:05.435818
+
+----------------------------------------------------------------------
+CORPUS STATISTICS
+----------------------------------------------------------------------
+Number of Wikipedia articles processed:  30
+Number of valid documents indexed:       30
+Total number of tokens:                  26,410
+Vocabulary size (unique terms):          12,230
+Total term-document postings:            16,774
+Total positional occurrences:            26,410
+Average document length:                 880.33 tokens
+Index construction time:                 0.16 seconds
+
+----------------------------------------------------------------------
+STORAGE STATISTICS
+----------------------------------------------------------------------
+Vocabulary file size:   0.98 MB (1,027,863 bytes)
+Postings file size:     0.25 MB (266,934 bytes)
+Doc metadata file size: 0.00 MB (1,769 bytes)
+Storage architecture:   Vocabulary in RAM, postings on secondary storage (disk)
+Postings format:        JSON-encoded UTF-8 bytes, accessed via byte offset + length
+
+----------------------------------------------------------------------
+TERMINOLOGY EXPLANATION
+----------------------------------------------------------------------
+Vocabulary Size:          The number of unique terms (distinct words)
+                          after tokenization across all documents.
+
+Document Frequency (df):  The number of distinct documents that contain
+                          a particular term. A measure of how widely a
+                          term is distributed across the collection.
+
+Collection Frequency (cf): The total number of times a term appears
+                          across all documents in the collection,
+                          counting every occurrence.
+
+Positional Occurrences:   The total count of all individual position
+                          entries across all terms and documents. Equal
+                          to the sum of cf for all terms, and also equal
+                          to the total number of tokens in the corpus.
+
+----------------------------------------------------------------------
+PREPROCESSING SETTINGS
+----------------------------------------------------------------------
+  normalization: Unicode NFC
+  case_folding: Lowercase (English only; Tamil unaffected)
+  token_pattern: [\p{L}\p{N}][\p{L}\p{M}\p{N}]*
+  stopwords_removed: False
+  stemming_applied: False
+  combining_marks_preserved: True
+  positions: Zero-based
+
+======================================================================

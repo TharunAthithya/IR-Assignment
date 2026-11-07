@@ -1,0 +1,67 @@
+======================================================================
+              FIVE TEST CASES — POSITIONAL INDEX VERIFICATION
+======================================================================
+
+----------------------------------------------------------------------
+TEST CASE 1: Common Tamil Term Search
+----------------------------------------------------------------------
+Query: ஒரு
+Expected: Multiple documents found with positions listed
+Actual Result: 20 documents found
+Search Time: 0.39 ms
+First Match — Doc ID: 0, Title: கட்டடக்கலை
+Positions in first doc: [36, 101, 141, 155, 167, 235, 271, 346, 358, 385, 421, 424, 429, 619, 628, 712, 760, 1171, 1247, 1333]
+Vocabulary confirms — df: 20, cf: 264
+Status: PASS ✓
+
+----------------------------------------------------------------------
+TEST CASE 2: Less Frequent Tamil Term Search
+----------------------------------------------------------------------
+Query: பற்றிய
+Expected: Fewer documents found (df in range 10-50)
+Actual Result: 12 documents found
+Search Time: 0.11 ms
+First Match — Doc ID: 0, Title: கட்டடக்கலை
+Positions in first doc: [507, 829, 1087]
+Vocabulary confirms — df: 12, cf: 32
+Status: PASS ✓
+
+----------------------------------------------------------------------
+TEST CASE 3: Phrase Search (Positional Verification)
+----------------------------------------------------------------------
+Query: "ஒரு பெரிய"
+Expected: Documents where terms appear consecutively in order
+Actual Result: 3 documents found
+Search Time: 0.17 ms
+First Match — Doc ID: 6, Title: இந்தியத் துணைக்கண்டம்
+Phrase start positions: [369]
+Multi-term match count: 20
+Phrase is strict subset of multi-term: True
+Phrase matches < Multi-term matches: 3 < 20 = True
+Status: PASS ✓
+
+----------------------------------------------------------------------
+TEST CASE 4: Multi-Term Search
+----------------------------------------------------------------------
+Query: ஒரு ஆம்
+Expected: Documents containing either term (union)
+Actual Result: 26 documents found
+Search Time: 0.11 ms
+df('ஒரு') = 20, df('ஆம்') = 18
+Union count (26) >= max(df) (20): True
+First Match — Doc ID: 0, Title: கட்டடக்கலை
+Status: PASS ✓
+
+----------------------------------------------------------------------
+TEST CASE 5: Unknown Term (Edge Case)
+----------------------------------------------------------------------
+Query: இமயமலைரோபோ2099செவ்வாய்
+Expected: 0 documents found, no errors
+Actual Result: 0 documents found
+Search Time: 0.02 ms
+No crash, graceful empty result: True
+Status: PASS ✓
+
+======================================================================
+TEST RESULTS SUMMARY: 5/5 tests passed
+======================================================================

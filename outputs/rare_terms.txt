@@ -1,0 +1,141 @@
+======================================================================
+          TEN RARE-TERM POSITIONAL INDEX EXAMPLES
+======================================================================
+
+Selection criteria: Genuine Tamil terms with lowest Document Frequency
+from the Tamil Wikipedia positional index.
+
+----------------------------------------------------------------------
+RARE TERM #1: 04இல்
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          204 bytes
+  Postings length:          13 bytes
+  Documents containing this term:
+    Doc ID 4:
+      Title:     கிறித்தோபர் கொலம்பசு
+      Positions: [3036]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #2: 100க்கு
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          727 bytes
+  Postings length:          13 bytes
+  Documents containing this term:
+    Doc ID 9:
+      Title:     இந்தியா
+      Positions: [5591]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #3: 11ஆம்
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          896 bytes
+  Postings length:          12 bytes
+  Documents containing this term:
+    Doc ID 4:
+      Title:     கிறித்தோபர் கொலம்பசு
+      Positions: [293]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #4: 11வது
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          908 bytes
+  Postings length:          12 bytes
+  Documents containing this term:
+    Doc ID 4:
+      Title:     கிறித்தோபர் கொலம்பசு
+      Positions: [144]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #5: 1200க்கு
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          1065 bytes
+  Postings length:          13 bytes
+  Documents containing this term:
+    Doc ID 9:
+      Title:     இந்தியா
+      Positions: [5802]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #6: 1200க்கும்
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          1078 bytes
+  Postings length:          13 bytes
+  Documents containing this term:
+    Doc ID 12:
+      Title:     பொறியியல்
+      Positions: [570]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #7: 1206இல்
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          1091 bytes
+  Postings length:          13 bytes
+  Documents containing this term:
+    Doc ID 9:
+      Title:     இந்தியா
+      Positions: [1731]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #8: 1470க்கு
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          1430 bytes
+  Postings length:          12 bytes
+  Documents containing this term:
+    Doc ID 4:
+      Title:     கிறித்தோபர் கொலம்பசு
+      Positions: [548]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #9: 1482லும்
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          1519 bytes
+  Postings length:          12 bytes
+  Documents containing this term:
+    Doc ID 4:
+      Title:     கிறித்தோபர் கொலம்பசு
+      Positions: [477]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #10: 1492க்கும்
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          1611 bytes
+  Postings length:          12 bytes
+  Documents containing this term:
+    Doc ID 4:
+      Title:     கிறித்தோபர் கொலம்பசு
+      Positions: [877]
+      Occurrences: 1
+
+======================================================================
+Total rare terms displayed: 10
+All data retrieved from the actual positional inverted index.
+======================================================================

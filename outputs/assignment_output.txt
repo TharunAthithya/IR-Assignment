@@ -1,0 +1,281 @@
+PART 1: FIVE TEST CASES
+
+
+======================================================================
+              FIVE TEST CASES — POSITIONAL INDEX VERIFICATION
+======================================================================
+
+----------------------------------------------------------------------
+TEST CASE 1: Common Tamil Term Search
+----------------------------------------------------------------------
+Query: ஒரு
+Expected: Multiple documents found with positions listed
+Actual Result: 20 documents found
+Search Time: 0.39 ms
+First Match — Doc ID: 0, Title: கட்டடக்கலை
+Positions in first doc: [36, 101, 141, 155, 167, 235, 271, 346, 358, 385, 421, 424, 429, 619, 628, 712, 760, 1171, 1247, 1333]
+Vocabulary confirms — df: 20, cf: 264
+Status: PASS ✓
+
+----------------------------------------------------------------------
+TEST CASE 2: Less Frequent Tamil Term Search
+----------------------------------------------------------------------
+Query: பற்றிய
+Expected: Fewer documents found (df in range 10-50)
+Actual Result: 12 documents found
+Search Time: 0.11 ms
+First Match — Doc ID: 0, Title: கட்டடக்கலை
+Positions in first doc: [507, 829, 1087]
+Vocabulary confirms — df: 12, cf: 32
+Status: PASS ✓
+
+----------------------------------------------------------------------
+TEST CASE 3: Phrase Search (Positional Verification)
+----------------------------------------------------------------------
+Query: "ஒரு பெரிய"
+Expected: Documents where terms appear consecutively in order
+Actual Result: 3 documents found
+Search Time: 0.17 ms
+First Match — Doc ID: 6, Title: இந்தியத் துணைக்கண்டம்
+Phrase start positions: [369]
+Multi-term match count: 20
+Phrase is strict subset of multi-term: True
+Phrase matches < Multi-term matches: 3 < 20 = True
+Status: PASS ✓
+
+----------------------------------------------------------------------
+TEST CASE 4: Multi-Term Search
+----------------------------------------------------------------------
+Query: ஒரு ஆம்
+Expected: Documents containing either term (union)
+Actual Result: 26 documents found
+Search Time: 0.11 ms
+df('ஒரு') = 20, df('ஆம்') = 18
+Union count (26) >= max(df) (20): True
+First Match — Doc ID: 0, Title: கட்டடக்கலை
+Status: PASS ✓
+
+----------------------------------------------------------------------
+TEST CASE 5: Unknown Term (Edge Case)
+----------------------------------------------------------------------
+Query: இமயமலைரோபோ2099செவ்வாய்
+Expected: 0 documents found, no errors
+Actual Result: 0 documents found
+Search Time: 0.02 ms
+No crash, graceful empty result: True
+Status: PASS ✓
+
+======================================================================
+TEST RESULTS SUMMARY: 5/5 tests passed
+======================================================================
+
+
+PART 2: TEN RARE-TERM POSITIONAL INDEX EXAMPLES
+
+
+======================================================================
+          TEN RARE-TERM POSITIONAL INDEX EXAMPLES
+======================================================================
+
+Selection criteria: Genuine Tamil terms with lowest Document Frequency
+from the Tamil Wikipedia positional index.
+
+----------------------------------------------------------------------
+RARE TERM #1: 04இல்
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          204 bytes
+  Postings length:          13 bytes
+  Documents containing this term:
+    Doc ID 4:
+      Title:     கிறித்தோபர் கொலம்பசு
+      Positions: [3036]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #2: 100க்கு
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          727 bytes
+  Postings length:          13 bytes
+  Documents containing this term:
+    Doc ID 9:
+      Title:     இந்தியா
+      Positions: [5591]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #3: 11ஆம்
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          896 bytes
+  Postings length:          12 bytes
+  Documents containing this term:
+    Doc ID 4:
+      Title:     கிறித்தோபர் கொலம்பசு
+      Positions: [293]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #4: 11வது
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          908 bytes
+  Postings length:          12 bytes
+  Documents containing this term:
+    Doc ID 4:
+      Title:     கிறித்தோபர் கொலம்பசு
+      Positions: [144]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #5: 1200க்கு
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          1065 bytes
+  Postings length:          13 bytes
+  Documents containing this term:
+    Doc ID 9:
+      Title:     இந்தியா
+      Positions: [5802]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #6: 1200க்கும்
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          1078 bytes
+  Postings length:          13 bytes
+  Documents containing this term:
+    Doc ID 12:
+      Title:     பொறியியல்
+      Positions: [570]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #7: 1206இல்
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          1091 bytes
+  Postings length:          13 bytes
+  Documents containing this term:
+    Doc ID 9:
+      Title:     இந்தியா
+      Positions: [1731]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #8: 1470க்கு
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          1430 bytes
+  Postings length:          12 bytes
+  Documents containing this term:
+    Doc ID 4:
+      Title:     கிறித்தோபர் கொலம்பசு
+      Positions: [548]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #9: 1482லும்
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          1519 bytes
+  Postings length:          12 bytes
+  Documents containing this term:
+    Doc ID 4:
+      Title:     கிறித்தோபர் கொலம்பசு
+      Positions: [477]
+      Occurrences: 1
+
+----------------------------------------------------------------------
+RARE TERM #10: 1492க்கும்
+----------------------------------------------------------------------
+  Document Frequency (df):  1
+  Collection Frequency (cf): 1
+  Postings offset:          1611 bytes
+  Postings length:          12 bytes
+  Documents containing this term:
+    Doc ID 4:
+      Title:     கிறித்தோபர் கொலம்பசு
+      Positions: [877]
+      Occurrences: 1
+
+======================================================================
+Total rare terms displayed: 10
+All data retrieved from the actual positional inverted index.
+======================================================================
+
+
+PART 3: INDEX STATISTICS
+
+
+======================================================================
+              INDEX STATISTICS REPORT
+======================================================================
+
+Dataset:                     Tamil Wikipedia
+Source:                      https://dumps.wikimedia.org/tawiki/
+Indexing Timestamp:          2026-11-07T02:28:05.435818
+
+----------------------------------------------------------------------
+CORPUS STATISTICS
+----------------------------------------------------------------------
+Number of Wikipedia articles processed:  30
+Number of valid documents indexed:       30
+Total number of tokens:                  26,410
+Vocabulary size (unique terms):          12,230
+Total term-document postings:            16,774
+Total positional occurrences:            26,410
+Average document length:                 880.33 tokens
+Index construction time:                 0.16 seconds
+
+----------------------------------------------------------------------
+STORAGE STATISTICS
+----------------------------------------------------------------------
+Vocabulary file size:   0.98 MB (1,027,863 bytes)
+Postings file size:     0.25 MB (266,934 bytes)
+Doc metadata file size: 0.00 MB (1,769 bytes)
+Storage architecture:   Vocabulary in RAM, postings on secondary storage (disk)
+Postings format:        JSON-encoded UTF-8 bytes, accessed via byte offset + length
+
+----------------------------------------------------------------------
+TERMINOLOGY EXPLANATION
+----------------------------------------------------------------------
+Vocabulary Size:          The number of unique terms (distinct words)
+                          after tokenization across all documents.
+
+Document Frequency (df):  The number of distinct documents that contain
+                          a particular term. A measure of how widely a
+                          term is distributed across the collection.
+
+Collection Frequency (cf): The total number of times a term appears
+                          across all documents in the collection,
+                          counting every occurrence.
+
+Positional Occurrences:   The total count of all individual position
+                          entries across all terms and documents. Equal
+                          to the sum of cf for all terms, and also equal
+                          to the total number of tokens in the corpus.
+
+----------------------------------------------------------------------
+PREPROCESSING SETTINGS
+----------------------------------------------------------------------
+  normalization: Unicode NFC
+  case_folding: Lowercase (English only; Tamil unaffected)
+  token_pattern: [\p{L}\p{N}][\p{L}\p{M}\p{N}]*
+  stopwords_removed: False
+  stemming_applied: False
+  combining_marks_preserved: True
+  positions: Zero-based
+
+======================================================================

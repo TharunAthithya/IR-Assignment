@@ -1,18 +1,31 @@
 # Virtual Environment
 .venv/
+venv/
+ENV/
 
-# Python Cache
+# Python Cache & Bytecode
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+.pytest_cache/
 
 # IDE Configuration
 .vscode/
 .idea/
+*.sublime-project
+*.sublime-workspace
 
-# Raw News Dataset (Excluded to comply with article copyright and redistribution restrictions)
-# Download from: https://huggingface.co/datasets/Shwetasss/HinduTamil-News-Articles-Dataset
-data/*.parquet
+# Large Raw Datasets (Do not push to Git due to file size limits)
+data/wikipedia/
+data/extracted/raw/
+*.xml
+*.bz2
+*.parquet
+*.tar.gz
 
-# Scratch and Temporary files
+# Scratch, Temporary & Plan files
 scratch/
+tmp/
+*.tmp
+implementation_plan.md

@@ -1,38 +1,35 @@
 {
-  "dataset_name": "Hindu Tamil News Articles Dataset",
-  "dataset_source": "https://huggingface.co/datasets/Shwetasss/HinduTamil-News-Articles-Dataset",
-  "local_dataset_file": "data/0000.parquet",
-  "indexing_timestamp": "2026-10-28T13:37:46.139851",
-  "total_original_records": 10334,
-  "total_indexed_documents": 10334,
-  "total_unique_terms": 168277,
-  "total_indexed_tokens": 2659417,
-  "average_tokens_per_document": 257.35,
-  "index_construction_duration_seconds": 5.433,
-  "preprocessing_settings": {
+  "dataset_name": "Tamil Wikipedia",
+  "dataset_source": "https://dumps.wikimedia.org/tawiki/",
+  "articles_file": "data\\extracted\\articles.jsonl",
+  "indexing_timestamp": "2026-11-07T02:28:05.435818",
+  "total_documents": 30,
+  "vocabulary_size": 12230,
+  "total_tokens": 26410,
+  "total_term_doc_postings": 16774,
+  "total_positional_entries": 26410,
+  "average_doc_length": 880.33,
+  "index_construction_seconds": 0.158,
+  "preprocessing": {
     "normalization": "Unicode NFC",
-    "case_folding": "Lowercase for English, preserved for Tamil",
+    "case_folding": "Lowercase (English only; Tamil unaffected)",
     "token_pattern": "[\\p{L}\\p{N}][\\p{L}\\p{M}\\p{N}]*",
     "stopwords_removed": false,
     "stemming_applied": false,
-    "combining_marks_preserved": true
+    "combining_marks_preserved": true,
+    "positions": "Zero-based"
   },
-  "file_sizes": {
-    "inverted_index.json": {
-      "bytes": 17325727,
-      "mb": 16.52
-    },
-    "positional_index.json": {
-      "bytes": 36754604,
-      "mb": 35.05
-    },
-    "dictionary.json": {
-      "bytes": 9676206,
-      "mb": 9.23
-    },
-    "documents.json": {
-      "bytes": 66413451,
-      "mb": 63.34
-    }
+  "storage": {
+    "vocabulary_file": "vocabulary.json",
+    "vocabulary_size_bytes": 1027863,
+    "vocabulary_size_mb": 0.98,
+    "postings_file": "postings.dat",
+    "postings_size_bytes": 266934,
+    "postings_size_mb": 0.25,
+    "doc_meta_file": "doc_meta.json",
+    "doc_meta_size_bytes": 1769,
+    "doc_meta_size_mb": 0.0,
+    "architecture": "Vocabulary in RAM, postings on secondary storage (disk)",
+    "postings_format": "JSON-encoded UTF-8 bytes, accessed via byte offset + length"
   }
 }

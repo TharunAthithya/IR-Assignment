@@ -1,24 +1,34 @@
-"""Interactive Command-Line Application for Tamil Information Retrieval System.
+"""Command-Line Interface for Tamil Wikipedia Information Retrieval System.
 
-This module provides a rich, robust, and interactive terminal interface for:
-1. Building or rebuilding Inverted and Positional indexes.
-2. Executing Single-Term search queries.
-3. Executing Boolean AND search queries.
-4. Executing Boolean OR search queries.
-5. Executing Exact Phrase searches with positional verification.
-6. Viewing comprehensive corpus and index statistics.
-7. Inspecting index postings and positions for a specific Tamil term.
-8. Graceful exit and error recovery.
+Provides subcommands for the complete IR workflow:
+    extract   — Extract articles from Wikipedia XML dump
+    build     — Build disk-based positional inverted index
+    search    — Search for a term or multiple terms
+    phrase    — Exact phrase search with positional verification
+    inspect   — Inspect a term's positional postings
+    stats     — Display index statistics
+    generate  — Generate assignment output files (test cases + rare terms)
+    package   — Create submission ZIP archives
+    interactive — Launch interactive menu
 
-Also supports non-interactive command-line arguments for automated testing and scripting.
+Usage examples:
+    python main.py extract
+    python main.py build
+    python main.py search "தமிழ்நாடு"
+    python main.py phrase "தமிழ்நாடு அரசு"
+    python main.py inspect "தமிழ்நாடு"
+    python main.py stats
+    python main.py generate
+    python main.py package --roll ROLLNO
 """
 
 import argparse
 import os
 import sys
+import zipfile
 from typing import Optional
 
-# Reconfigure stdout and stdin for full Unicode support in Windows terminal
+# Reconfigure stdout and stdin for full Unicode support
 if hasattr(sys.stdout, "reconfigure"):
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -27,284 +37,358 @@ if hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
-from build_index import build_and_save
-from preprocess import normalize_text, tokenize
-from search import TamilSearchEngine
+
+def cmd_extract(args):
+    """Extract articles from Tamil Wikipedia XML dump."""
+    from extract_wiki import extract_and_save
+    extract_and_save(
+        dump_dir=args.dump_dir,
+        output_dir=args.extracted_dir,
+        force=args.force,
+    )
 
 
-def print_banner():
-    """Prints the system header banner."""
-    print("=" * 66)
-    print("      TAMIL INFORMATION RETRIEVAL SEARCH ENGINE (IR ASSIGNMENT)    ")
-    print("=" * 66)
+def cmd_build(args):
+    """Build disk-based positional inverted index."""
+    from build_index import build_and_save
+    build_and_save(
+        articles_path=args.articles,
+        output_dir=args.index_dir,
+    )
 
 
-def print_menu():
-    """Displays the interactive menu options."""
-    print("\n" + "=" * 46)
-    print("  TAMIL INFORMATION RETRIEVAL SEARCH ENGINE  ")
-    print("=" * 46)
-    print(" 1. Build Indexes")
-    print(" 2. Single-Term Search")
-    print(" 3. Boolean AND Search")
-    print(" 4. Boolean OR Search")
-    print(" 5. Exact Phrase Search")
-    print(" 6. View Index Statistics")
-    print(" 7. Display Index for a Term")
-    print(" 8. Exit")
-    print("=" * 46)
+def cmd_search(args):
+    """Execute a single-term or multi-term search."""
+    from search import TamilSearchEngine
+    engine = TamilSearchEngine(index_dir=args.index_dir)
 
-
-def load_or_init_engine(index_dir: str = "indexes") -> Optional[TamilSearchEngine]:
-    """Safely loads the search engine, warning user if indexes are missing."""
-    try:
-        engine = TamilSearchEngine(index_dir=index_dir)
-        return engine
-    except FileNotFoundError:
-        print(f"\n[!] Warning: Index files not found in '{index_dir}'.")
-        print("    Please select Option 1 ('Build Indexes') from the menu first.\n")
-        return None
-    except Exception as e:
-        print(f"\n[!] Error loading indexes: {e}\n")
-        return None
-
-
-def handle_search(engine: TamilSearchEngine, mode: str):
-    """Handles interactive query entry, execution, and pagination of results."""
-    mode_names = {
-        "term": ("Single-Term Search", "Enter a Tamil word (e.g. சென்னை): "),
-        "and": ("Boolean AND Search", "Enter terms separated by AND (e.g. சென்னை AND மழை): "),
-        "or": ("Boolean OR Search", "Enter terms separated by OR (e.g. தமிழ்நாடு OR சென்னை): "),
-        "phrase": ("Exact Phrase Search", "Enter exact Tamil phrase (e.g. தமிழக அரசு): "),
-    }
-
-    title, prompt = mode_names.get(mode, ("Search", "Enter query: "))
-    print(f"\n--- {title} ---")
-    query = input(prompt).strip()
-
-    if not query:
-        print("[!] Empty query entered. Returning to menu.")
-        return
-
-    # Execute search according to mode
-    if mode == "term":
-        res = engine.single_term_search(query)
-    elif mode == "and":
-        res = engine.boolean_and_search(query)
-    elif mode == "or":
-        res = engine.boolean_or_search(query)
-    elif mode == "phrase":
-        res = engine.exact_phrase_search(query)
+    if len(args.query.split()) > 1:
+        res = engine.multi_term_search(args.query, max_results=args.limit)
     else:
-        print("[!] Invalid search mode.")
+        res = engine.single_term_search(args.query, max_results=args.limit)
+
+    print(engine.format_output(res, max_display=args.limit))
+
+
+def cmd_phrase(args):
+    """Execute an exact phrase search."""
+    from search import TamilSearchEngine
+    engine = TamilSearchEngine(index_dir=args.index_dir)
+    res = engine.phrase_search(args.query, max_results=args.limit)
+    print(engine.format_output(res, max_display=args.limit))
+
+
+def cmd_inspect(args):
+    """Inspect a term's positional postings."""
+    from search import TamilSearchEngine
+    engine = TamilSearchEngine(index_dir=args.index_dir)
+    info = engine.get_term_info(args.term)
+
+    if info is None:
+        print(f"Term '{args.term}' was NOT found in the vocabulary.")
         return
 
-    # Display initial batch of results
-    print("\n" + engine.format_output(res, max_display=10))
-
-    # Pagination: allow viewing additional matches if total > 10
-    total = res.total_matches
-    current_offset = 10
-
-    while current_offset < total:
-        print(f"\nMatches {current_offset + 1} to {min(current_offset + 10, total)} of {total} available.")
-        user_choice = input("Enter 'n' or press Enter to view next 10 results, or 'm' for main menu: ").strip().lower()
-        if user_choice == "m":
-            break
-
-        next_ids = res.matching_doc_ids[current_offset : current_offset + 10]
-        pos_map = res.matching_positions if mode == "phrase" else None
-        more_items = engine.get_result_items(
-            next_ids,
-            res.query_terms,
-            positions_map=pos_map,
-            phrase_match=(mode == "phrase"),
-        )
-
-        for idx, item in enumerate(more_items, start=current_offset + 1):
-            print("-" * 60)
-            print(f"Result #{idx}")
-            print(f"Document ID: {item.doc_id}")
-            print(f"Title: {item.title}")
-            if item.matched_positions is not None:
-                print(f"Matched Positions: {item.matched_positions}")
-            print(f"Snippet: {item.snippet}")
-            if item.city or item.published:
-                print(f"Metadata: City={item.city} | Published={item.published}")
-
-        current_offset += len(more_items)
-
-
-def display_index_statistics(engine: Optional[TamilSearchEngine], index_dir: str = "indexes"):
-    """Displays corpus and index statistics."""
     print("\n" + "=" * 60)
-    print("            COLLECTION & INDEX STATISTICS            ")
+    print(f"TERM INSPECTION: '{info['term']}'")
+    print("=" * 60)
+    print(f"Document Frequency (df):  {info['df']:,} documents")
+    print(f"Collection Frequency (cf): {info['cf']:,} total occurrences")
+    print(f"Postings offset:          {info['offset']:,} bytes")
+    print(f"Postings length:          {info['length']:,} bytes")
+    print("-" * 60)
+    print(f"Positional Postings Sample (first {len(info['sample_docs'])} documents):")
+    for did_str, doc_info in info["sample_docs"].items():
+        print(f"  Doc ID {did_str} ({doc_info['occurrences']} occurrences):")
+        print(f"    Title:     {doc_info['title'][:80]}")
+        print(f"    Positions: {doc_info['positions']}")
     print("=" * 60)
 
-    if engine is None or not engine.is_loaded:
-        print(f"[!] Indexes are not loaded from '{index_dir}'.")
-        return
 
+def cmd_stats(args):
+    """Display index statistics."""
+    from search import TamilSearchEngine
+    engine = TamilSearchEngine(index_dir=args.index_dir)
     meta = engine.metadata
-    print(f"Dataset Name:          {meta.get('dataset_name', 'N/A')}")
-    print(f"Dataset Source:        {meta.get('dataset_source', 'N/A')}")
-    print(f"Local Parquet File:    {meta.get('local_dataset_file', 'N/A')}")
-    print(f"Indexing Timestamp:    {meta.get('indexing_timestamp', 'N/A')}")
-    print("-" * 60)
-    print(f"Total Documents:       {meta.get('total_indexed_documents', 0):,}")
-    print(f"Total Unique Terms:    {meta.get('total_unique_terms', 0):,} terms (Vocabulary Size)")
-    print(f"Total Indexed Tokens:  {meta.get('total_indexed_tokens', 0):,} tokens")
-    print(f"Average Tokens/Doc:    {meta.get('average_tokens_per_document', 0)}")
-    print(f"Build Duration:        {meta.get('index_construction_duration_seconds', 0):.2f} seconds")
-    print("-" * 60)
-    print("Storage File Sizes on Disk:")
-    for fname, size_info in meta.get("file_sizes", {}).items():
-        mb = size_info.get("mb", 0)
-        bytes_val = size_info.get("bytes", 0)
-        print(f"  - {fname:24s}: {mb:6.2f} MB ({bytes_val:,} bytes)")
 
+    print("\n" + "=" * 60)
+    print("         INDEX & COLLECTION STATISTICS")
+    print("=" * 60)
+    print(f"Dataset:                 {meta.get('dataset_name', 'N/A')}")
+    print(f"Source:                  {meta.get('dataset_source', 'N/A')}")
+    print(f"Indexing Timestamp:      {meta.get('indexing_timestamp', 'N/A')}")
     print("-" * 60)
+    print(f"Total Documents:         {meta.get('total_documents', 0):,}")
+    print(f"Vocabulary Size:         {meta.get('vocabulary_size', 0):,} unique terms")
+    print(f"Total Tokens:            {meta.get('total_tokens', 0):,}")
+    print(f"Term-Doc Postings:       {meta.get('total_term_doc_postings', 0):,}")
+    print(f"Positional Entries:      {meta.get('total_positional_entries', 0):,}")
+    print(f"Average Doc Length:      {meta.get('average_doc_length', 0)} tokens")
+    print(f"Build Duration:          {meta.get('index_construction_seconds', 0):.2f} seconds")
+    print("-" * 60)
+    storage = meta.get("storage", {})
+    print("Storage Architecture: Vocabulary in RAM, Postings on Disk")
+    print(f"  Vocabulary file:       {storage.get('vocabulary_size_mb', 0):.2f} MB")
+    print(f"  Postings file:         {storage.get('postings_size_mb', 0):.2f} MB")
+    print(f"  Doc metadata file:     {storage.get('doc_meta_size_mb', 0):.2f} MB")
+    print("-" * 60)
+    preprocessing = meta.get("preprocessing", {})
     print("Preprocessing Settings:")
-    for k, v in meta.get("preprocessing_settings", {}).items():
-        print(f"  - {k}: {v}")
+    for k, v in preprocessing.items():
+        print(f"  {k}: {v}")
     print("=" * 60)
 
 
-def display_term_index(engine: Optional[TamilSearchEngine]):
-    """Displays posting details for a user-specified Tamil term."""
-    print("\n--- Display Index for a Term ---")
-    if engine is None or not engine.is_loaded:
-        print("[!] Indexes must be built and loaded first.")
+def cmd_generate(args):
+    """Generate assignment output files."""
+    from generate_outputs import generate_all_outputs
+    generate_all_outputs(
+        output_dir=args.output_dir,
+        index_dir=args.index_dir,
+    )
+
+
+def cmd_package(args):
+    """Create submission ZIP archives."""
+    roll = args.roll
+
+    # Source files to include in src.zip
+    src_files = [
+        "preprocess.py",
+        "extract_wiki.py",
+        "build_index.py",
+        "search.py",
+        "main.py",
+        "generate_outputs.py",
+        "requirements.txt",
+        "tests/__init__.py",
+        "tests/test_preprocessing.py",
+        "tests/test_indexing.py",
+        "tests/test_search.py",
+        "tests/test_integration.py",
+    ]
+
+    # Create source ZIP
+    src_zip_name = f"{roll}-src.zip"
+    src_zip_path = os.path.join(".", src_zip_name)
+    print(f"Creating {src_zip_name}...")
+    with zipfile.ZipFile(src_zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        for fpath in src_files:
+            if os.path.exists(fpath):
+                zf.write(fpath, fpath)
+                print(f"  Added: {fpath}")
+            else:
+                print(f"  MISSING: {fpath}")
+    print(f"Created: {src_zip_path}")
+
+    # Create README.txt (copy of README.md as plain text)
+    readme_txt_path = os.path.join(".", f"{roll}-README.txt")
+    if os.path.exists("README.md"):
+        with open("README.md", "r", encoding="utf-8") as fin:
+            content = fin.read()
+        with open(readme_txt_path, "w", encoding="utf-8") as fout:
+            fout.write(content)
+        print(f"Created: {readme_txt_path}")
+
+    # Check output file
+    output_file = os.path.join("outputs", "assignment_output.txt")
+    if not os.path.exists(output_file):
+        print(f"\n[!] Output file '{output_file}' not found.")
+        print("    Run 'python main.py generate' first.")
         return
 
-    term_input = input("Enter a Tamil term to inspect (e.g. தமிழ்நாடு or சென்னை): ").strip()
-    if not term_input:
-        print("[!] No term entered.")
+    output_txt_name = f"{roll}-output.txt"
+    output_txt_path = os.path.join(".", output_txt_name)
+    with open(output_file, "r", encoding="utf-8") as fin:
+        content = fin.read()
+    with open(output_txt_path, "w", encoding="utf-8") as fout:
+        fout.write(content)
+    print(f"Created: {output_txt_path}")
+
+    # Create final submission ZIP
+    final_zip_name = f"{roll}-A1-PostIndex-IR-M2026.zip"
+    final_zip_path = os.path.join(".", final_zip_name)
+    print(f"\nCreating final submission: {final_zip_name}...")
+    with zipfile.ZipFile(final_zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.write(readme_txt_path, f"{roll}-README.txt")
+        zf.write(src_zip_path, src_zip_name)
+        zf.write(output_txt_path, output_txt_name)
+    print(f"Created: {final_zip_path}")
+
+    print("\n" + "=" * 60)
+    print("SUBMISSION PACKAGING COMPLETE")
+    print("=" * 60)
+    print(f"Final archive: {final_zip_path}")
+    print("Contents:")
+    print(f"  1. {roll}-README.txt")
+    print(f"  2. {src_zip_name}")
+    print(f"  3. {output_txt_name}")
+    print("=" * 60)
+
+
+def cmd_test(args):
+    """Run the test suite."""
+    import subprocess
+    cmd = [
+        sys.executable, "-X", "utf8",
+        "-m", "unittest", "discover",
+        "-s", "tests", "-p", "test_*.py", "-v",
+    ]
+    subprocess.run(cmd, cwd=os.getcwd())
+
+
+def cmd_interactive(args):
+    """Launch interactive search menu."""
+    from search import TamilSearchEngine
+    from preprocess import tokenize
+
+    print("=" * 66)
+    print("   TAMIL WIKIPEDIA IR SYSTEM — INTERACTIVE MODE")
+    print("=" * 66)
+
+    try:
+        engine = TamilSearchEngine(index_dir=args.index_dir)
+    except FileNotFoundError:
+        print("[!] Index files not found. Run 'python main.py build' first.")
         return
-
-    tokens = tokenize(term_input)
-    if not tokens:
-        print("[!] Input produced no valid tokens.")
-        return
-
-    term = tokens[0]
-    print(f"\nNormalized Term: '{term}'")
-
-    dict_entry = engine.dictionary.get(term)
-    if not dict_entry:
-        print(f"[!] Term '{term}' was NOT found in the vocabulary.")
-        return
-
-    df = dict_entry.get("df", 0)
-    cf = dict_entry.get("cf", 0)
-    print(f"Document Frequency (df):    {df:,} documents")
-    print(f"Collection Frequency (cf):  {cf:,} occurrences")
-
-    # Regular Inverted Index Posting List
-    inv_postings = engine.inverted_index.get(term, [])
-    preview_inv = inv_postings[:25]
-    print(f"\nRegular Inverted Index Postings List ({len(inv_postings):,} total docs):")
-    print(f"  First 25 Document IDs: {preview_inv}")
-    if len(inv_postings) > 25:
-        print(f"  ... ({len(inv_postings) - 25} more document IDs)")
-
-    # Positional Inverted Index Posting Sample
-    pos_postings = engine.positional_index.get(term, {})
-    sample_docs = list(pos_postings.keys())[:5]
-    print(f"\nPositional Inverted Index Sample (First 5 docs):")
-    for doc_id_str in sample_docs:
-        positions = pos_postings[doc_id_str]
-        doc_title = engine.documents.get(doc_id_str, {}).get("title", "")
-        print(f"  Doc ID {doc_id_str} ({len(positions)} occurrences):")
-        print(f"    Positions: {positions}")
-        print(f"    Title:     {doc_title[:75]}...")
-
-
-def interactive_loop():
-    """Main application loop."""
-    print_banner()
-    index_dir = "indexes"
-    engine = load_or_init_engine(index_dir=index_dir)
 
     while True:
-        print_menu()
-        choice = input("Enter your choice (1-8): ").strip()
+        print("\n" + "=" * 46)
+        print("  SEARCH MENU")
+        print("=" * 46)
+        print(" 1. Single-Term Search")
+        print(" 2. Multi-Term Search")
+        print(" 3. Phrase Search")
+        print(" 4. Inspect Term")
+        print(" 5. Index Statistics")
+        print(" 6. Exit")
+        print("=" * 46)
+
+        choice = input("Enter choice (1-6): ").strip()
 
         if choice == "1":
-            print("\n[+] Rebuilding indexes from dataset...")
-            build_and_save(data_path="data/0000.parquet", output_dir=index_dir)
-            print("[+] Reloading search engine with newly generated indexes...")
-            engine = load_or_init_engine(index_dir=index_dir)
-            print("[+] Indexes successfully built and loaded!")
+            query = input("Enter a Tamil term: ").strip()
+            if query:
+                res = engine.single_term_search(query)
+                print("\n" + engine.format_output(res, max_display=10))
 
-        elif choice in ("2", "3", "4", "5"):
-            if engine is None:
-                print("\n[!] Indexes not loaded. Please choose Option 1 to build indexes first.")
-                continue
+        elif choice == "2":
+            query = input("Enter multiple Tamil terms: ").strip()
+            if query:
+                res = engine.multi_term_search(query)
+                print("\n" + engine.format_output(res, max_display=10))
 
-            mode_map = {
-                "2": "term",
-                "3": "and",
-                "4": "or",
-                "5": "phrase",
-            }
-            handle_search(engine, mode_map[choice])
+        elif choice == "3":
+            query = input("Enter Tamil phrase: ").strip()
+            if query:
+                res = engine.phrase_search(query)
+                print("\n" + engine.format_output(res, max_display=10))
+
+        elif choice == "4":
+            term = input("Enter term to inspect: ").strip()
+            if term:
+                info = engine.get_term_info(term)
+                if info:
+                    print(f"\nTerm: {info['term']}")
+                    print(f"df: {info['df']:,}, cf: {info['cf']:,}")
+                    print(f"Offset: {info['offset']}, Length: {info['length']}")
+                    for did, dinfo in info["sample_docs"].items():
+                        print(f"  Doc {did}: positions={dinfo['positions']}  title={dinfo['title'][:60]}")
+                else:
+                    print("Term not found in vocabulary.")
+
+        elif choice == "5":
+            # Reuse stats display
+            class _Args:
+                index_dir = args.index_dir
+            cmd_stats(_Args())
 
         elif choice == "6":
-            display_index_statistics(engine, index_dir=index_dir)
-
-        elif choice == "7":
-            display_term_index(engine)
-
-        elif choice == "8":
-            print("\nExiting Tamil Information Retrieval System. Goodbye!")
-            sys.exit(0)
+            print("Goodbye!")
+            break
 
         else:
-            print("\n[!] Invalid selection. Please enter a number between 1 and 8.")
+            print("[!] Invalid choice.")
 
 
 def main():
-    """Entry point supporting both interactive CLI and non-interactive arguments."""
-    parser = argparse.ArgumentParser(description="Tamil Information Retrieval Search Engine")
-    parser.add_argument("--interactive", action="store_true", help="Launch interactive menu loop")
-    parser.add_argument("--build", action="store_true", help="Build indexes non-interactively")
-    parser.add_argument("--stats", action="store_true", help="Print index statistics and exit")
-    parser.add_argument("--inspect-term", type=str, help="Inspect index details for a given term")
-    parser.add_argument("--data", type=str, default="data/0000.parquet", help="Parquet dataset path")
-    parser.add_argument("--index-dir", type=str, default="indexes", help="Indexes directory")
+    """Entry point with subcommand routing."""
+    parser = argparse.ArgumentParser(
+        description="Tamil Wikipedia Information Retrieval System",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # --- extract ---
+    p_extract = subparsers.add_parser("extract", help="Extract Wikipedia dump")
+    p_extract.add_argument("--dump-dir", default="data/wikipedia", help="Directory containing dump file")
+    p_extract.add_argument("--extracted-dir", default="data/extracted", help="Output directory for extracted articles")
+    p_extract.add_argument("--force", action="store_true", help="Force re-extraction")
+    p_extract.set_defaults(func=cmd_extract)
+
+    # --- build ---
+    p_build = subparsers.add_parser("build", help="Build positional inverted index")
+    p_build.add_argument("--articles", default=None, help="Path to articles.jsonl")
+    p_build.add_argument("--index-dir", default="indexes", help="Output directory for index files")
+    p_build.set_defaults(func=cmd_build)
+
+    # --- search ---
+    p_search = subparsers.add_parser("search", help="Search for terms")
+    p_search.add_argument("query", type=str, help="Search query")
+    p_search.add_argument("--index-dir", default="indexes", help="Index directory")
+    p_search.add_argument("--limit", type=int, default=10, help="Max results")
+    p_search.set_defaults(func=cmd_search)
+
+    # --- phrase ---
+    p_phrase = subparsers.add_parser("phrase", help="Exact phrase search")
+    p_phrase.add_argument("query", type=str, help="Phrase query")
+    p_phrase.add_argument("--index-dir", default="indexes", help="Index directory")
+    p_phrase.add_argument("--limit", type=int, default=10, help="Max results")
+    p_phrase.set_defaults(func=cmd_phrase)
+
+    # --- inspect ---
+    p_inspect = subparsers.add_parser("inspect", help="Inspect a term's postings")
+    p_inspect.add_argument("term", type=str, help="Term to inspect")
+    p_inspect.add_argument("--index-dir", default="indexes", help="Index directory")
+    p_inspect.set_defaults(func=cmd_inspect)
+
+    # --- stats ---
+    p_stats = subparsers.add_parser("stats", help="Show index statistics")
+    p_stats.add_argument("--index-dir", default="indexes", help="Index directory")
+    p_stats.set_defaults(func=cmd_stats)
+
+    # --- generate ---
+    p_gen = subparsers.add_parser("generate", help="Generate assignment outputs")
+    p_gen.add_argument("--output-dir", default="outputs", help="Output directory")
+    p_gen.add_argument("--index-dir", default="indexes", help="Index directory")
+    p_gen.set_defaults(func=cmd_generate)
+
+    # --- package ---
+    p_pkg = subparsers.add_parser("package", help="Create submission ZIPs")
+    p_pkg.add_argument("--roll", default="ROLLNO", help="Your roll number")
+    p_pkg.set_defaults(func=cmd_package)
+
+    # --- test ---
+    p_test = subparsers.add_parser("test", help="Run test suite")
+    p_test.set_defaults(func=cmd_test)
+
+    # --- interactive ---
+    p_inter = subparsers.add_parser("interactive", help="Interactive search menu")
+    p_inter.add_argument("--index-dir", default="indexes", help="Index directory")
+    p_inter.set_defaults(func=cmd_interactive)
 
     args = parser.parse_args()
 
-    # Non-interactive triggers
-    if args.build:
-        build_and_save(data_path=args.data, output_dir=args.index_dir)
+    if args.command is None:
+        # Default: show help
+        parser.print_help()
+        print("\nQuick start:")
+        print("  python main.py extract       # Extract Wikipedia dump")
+        print("  python main.py build         # Build index")
+        print("  python main.py search \"term\" # Search")
+        print("  python main.py interactive   # Interactive mode")
         return
 
-    if args.stats:
-        engine = load_or_init_engine(index_dir=args.index_dir)
-        display_index_statistics(engine, index_dir=args.index_dir)
-        return
-
-    if args.inspect_term:
-        engine = load_or_init_engine(index_dir=args.index_dir)
-        tokens = tokenize(args.inspect_term)
-        term = tokens[0] if tokens else args.inspect_term
-        print(f"\n--- Inspection for Term: '{term}' ---")
-        if engine and term in engine.dictionary:
-            dict_info = engine.dictionary[term]
-            print(f"df: {dict_info['df']}, cf: {dict_info['cf']}")
-            print(f"Inverted postings (first 10): {engine.inverted_index.get(term, [])[:10]}")
-            pos_dict = engine.positional_index.get(term, {})
-            first_docs = list(pos_dict.keys())[:3]
-            for did in first_docs:
-                print(f"  Doc {did}: positions={pos_dict[did]}")
-        else:
-            print("Term not found in dictionary.")
-        return
-
-    # Default: launch interactive loop
-    interactive_loop()
+    args.func(args)
 
 
 if __name__ == "__main__":
